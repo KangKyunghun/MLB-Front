@@ -32,6 +32,7 @@ export interface BoxScoreResponse {
   walks: number | null;
   strikeOuts: number | null;
   battingOrder: number | null;
+  gamePosition: string | null; // 그 경기에서 뛴 수비 포지션 (P, C, 1B, 2B, 3B, SS, LF, CF, RF, DH)
 
   // 투수
   inningsPitched: number | null;
@@ -43,6 +44,7 @@ export interface BoxScoreResponse {
   isWin: boolean | null;
   isLoss: boolean | null;
   isSave: boolean | null;
+  isHold: boolean | null;
 }
 
 export interface TimelinePitch {
@@ -70,6 +72,7 @@ export interface TimelineEvent {
     | "PITCHING_CHANGE"
     | "PINCH_HITTER"
     | "PINCH_RUNNER"
+    | "DEFENSIVE_SUB"
     | "GAME_END";
   inning: number;
   halfInning: "top" | "bottom";
@@ -94,8 +97,54 @@ export interface TimelineEvent {
 
   substituteName: string | null;
   replacedName: string | null;
+  substitutePosition: string | null;
 
   balls: number | null;
   strikes: number | null;
   outs: number | null;
+}
+
+// ─────────────────────────────────────────────
+// 이닝별 수비 상황 스냅샷 (수비 라인업 + 현재타자/대기타자)
+// ─────────────────────────────────────────────
+
+export interface DefenseLineupPlayer {
+  playerId: number | null;
+  playerName: string | null;
+  photoUrl: string | null;
+  battingOrder: number | null;
+}
+
+export interface DefensePlayer {
+  position: string; // P, C, 1B, 2B, 3B, SS, LF, CF, RF
+  playerId: number | null;
+  playerName: string | null;
+  photoUrl: string | null;
+}
+
+export interface DefenseSnapshotResponse {
+  gameId: number;
+  inning: number;
+  halfInning: "top" | "bottom";
+
+  battingTeamId: number;
+  battingTeamName: string;
+  battingTeamAbbreviation: string;
+
+  fieldingTeamId: number;
+  fieldingTeamName: string;
+  fieldingTeamAbbreviation: string;
+
+  awayScore: number;
+  homeScore: number;
+
+  balls: number;
+  strikes: number;
+  outs: number;
+
+  positions: DefensePlayer[];
+
+  currentBatter: DefenseLineupPlayer | null;
+  onDeck: DefenseLineupPlayer | null;
+  inHole: DefenseLineupPlayer | null;
 }

@@ -395,14 +395,16 @@ export default function GamesPage() {
   };
 }, [dateStr]);
 
-  // status 기준으로 그룹 분리 + 정렬
-  const liveGames = games.filter((g) => isLive(g.status));
+  // 경기 시작 시간이 빠른 순서대로 정렬
+  const byGameTime = (a: GameResponse, b: GameResponse) =>
+    new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime();
+
+  // status 기준으로 그룹 분리 + 각 그룹 내에서 시작 시간순 정렬
+  const liveGames = games.filter((g) => isLive(g.status)).sort(byGameTime);
   const scheduledGames = games
     .filter((g) => isScheduled(g.status))
-    .sort(
-      (a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime()
-    );
-  const finalGames = games.filter((g) => isFinal(g.status));
+    .sort(byGameTime);
+  const finalGames = games.filter((g) => isFinal(g.status)).sort(byGameTime);
 
   return (
     <div className="flex flex-col gap-3">

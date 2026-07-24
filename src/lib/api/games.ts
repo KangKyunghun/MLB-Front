@@ -1,9 +1,10 @@
 import { api } from "./client";
-import type { GameResponse } from "@/types";
+import type { BatterStatResponse, GameResponse, PitcherStatResponse } from "@/types";
 import type {
   LineScoreResponse,
   BoxScoreResponse,
   TimelineEvent,
+  DefenseSnapshotResponse,
 } from "@/types/game";
 
 /** 날짜별 경기 목록 (date: "YYYY-MM-DD") */
@@ -50,6 +51,45 @@ export const getTimeline = async (
 ): Promise<TimelineEvent[]> => {
   const { data } = await api.get<TimelineEvent[]>(
     `/api/timeline/${gameId}`
+  );
+  return data;
+};
+
+/** 이닝(초/말) 시점 수비 상황 스냅샷 (수비 라인업 + 현재타자/대기타자) */
+export const getDefenseSnapshot = async (
+  gameId: number,
+  inning: number,
+  half: "top" | "bottom"
+): Promise<DefenseSnapshotResponse> => {
+  const { data } = await api.get<DefenseSnapshotResponse>(
+    `/api/games/${gameId}/defense`,
+    { params: { inning, half } }
+  );
+  return data;
+};
+
+/** 특정 선수의 시즌 타자 성적 (경기 후 타율 등 표시용) */
+export const getBatterStatBySeason = async (
+  playerId: number,
+  season: number,
+  gameType: string = "R"
+): Promise<BatterStatResponse> => {
+  const { data } = await api.get<BatterStatResponse>(
+    `/api/players/${playerId}/batter-stats/${season}`,
+    { params: { gameType } }
+  );
+  return data;
+};
+
+/** 특정 선수의 시즌 투수 성적 (경기 후 방어율 등 표시용) */
+export const getPitcherStatBySeason = async (
+  playerId: number,
+  season: number,
+  gameType: string = "R"
+): Promise<PitcherStatResponse> => {
+  const { data } = await api.get<PitcherStatResponse>(
+    `/api/players/${playerId}/pitcher-stats/${season}`,
+    { params: { gameType } }
   );
   return data;
 };
