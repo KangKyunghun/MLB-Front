@@ -85,12 +85,12 @@ function GameCard({ game }: { game: GameResponse }) {
       href={`/games/${game.id}`}
       className="flex items-center gap-4 rounded-xl bg-bg-primary px-4 py-3 transition-colors hover:bg-bg-secondary"
     >
-      {/* 홈 팀 */}
+      {/* 원정 팀 — 왼쪽 */}
       <TeamBlock
-        logoUrl={game.homeTeamLogoUrl}
-        abbreviation={game.homeTeamAbbreviation}
-        name={game.homeTeamName}
-        score={game.homeScore}
+        logoUrl={game.awayTeamLogoUrl}
+        abbreviation={game.awayTeamAbbreviation}
+        name={game.awayTeamName}
+        score={game.awayScore}
         showScore={showScore}
         align="left"
       />
@@ -121,12 +121,12 @@ function GameCard({ game }: { game: GameResponse }) {
         )}
       </div>
 
-      {/* 원정 팀 */}
+      {/* 홈 팀 — 오른쪽 */}
       <TeamBlock
-        logoUrl={game.awayTeamLogoUrl}
-        abbreviation={game.awayTeamAbbreviation}
-        name={game.awayTeamName}
-        score={game.awayScore}
+        logoUrl={game.homeTeamLogoUrl}
+        abbreviation={game.homeTeamAbbreviation}
+        name={game.homeTeamName}
+        score={game.homeScore}
         showScore={showScore}
         align="right"
       />

@@ -18,6 +18,7 @@ import type {
   TimelineEvent,
   DefenseSnapshotResponse,
 } from "@/types/game";
+import GameChatBox from "@/components/GameChatBox";
 
 /** 시즌 타율/방어율 소수점 표기 (타율 .310, 방어율 3.45 스타일) */
 function formatAvg(avg: number | null | undefined): string {
@@ -1176,103 +1177,111 @@ export default function GameDetailPage({ params }: { params: Promise<{ gameId: s
   const final = isFinal(game.status);
 
   return (
-    <div className="flex flex-col gap-3">
-      <Link
-        href="/games"
-        className="flex w-fit items-center gap-1 text-[12px] text-text-secondary hover:text-text-primary"
-      >
-        ‹ 경기 목록
-      </Link>
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-4">
+      {/* 좌측: 기존 경기 상세 콘텐츠 */}
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
+        <Link
+          href="/games"
+          className="flex w-fit items-center gap-1 text-[12px] text-text-secondary hover:text-text-primary"
+        >
+          ‹ 경기 목록
+        </Link>
 
-      {/* 헤더 스코어보드 */}
-      <div className="rounded-xl bg-bg-primary px-5 py-5">
-        <div className="mb-4 flex items-center gap-2">
-          {live && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] font-semibold text-red-500">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
-              LIVE
-            </span>
+        {/* 헤더 스코어보드 */}
+        <div className="rounded-xl bg-bg-primary px-5 py-5">
+          <div className="mb-4 flex items-center gap-2">
+            {live && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] font-semibold text-red-500">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
+                LIVE
+              </span>
+            )}
+            {final && <span className="text-[11px] text-text-secondary">경기 종료</span>}
+            <span className="text-[11px] text-text-secondary">{formatGameDate(game.gameDate)}</span>
+            {game.venue && <span className="text-[11px] text-text-secondary">· {game.venue}</span>}
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-1 flex-col items-start gap-2">
+              {game.awayTeamLogoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={game.awayTeamLogoUrl} alt={game.awayTeamAbbreviation} className="h-14 w-14 object-contain" />
+              )}
+              <div>
+                <p className="text-[15px] font-bold text-text-primary">{game.awayTeamAbbreviation}</p>
+                <p className="text-[12px] text-text-secondary">{game.awayTeamName}</p>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 flex-col items-center gap-1">
+              {live || final ? (
+                <div className="flex items-center gap-3 text-[36px] font-extrabold tabular-nums text-text-primary">
+                  <span>{game.awayScore ?? 0}</span>
+                  <span className="text-[20px] font-light text-text-secondary">-</span>
+                  <span>{game.homeScore ?? 0}</span>
+                </div>
+              ) : (
+                <div className="text-[24px] font-bold text-text-primary">
+                  {new Date(game.gameDate).toLocaleTimeString("ko-KR", {
+                    timeZone: "Asia/Seoul",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-1 flex-col items-end gap-2">
+              {game.homeTeamLogoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={game.homeTeamLogoUrl} alt={game.homeTeamAbbreviation} className="h-14 w-14 object-contain" />
+              )}
+              <div className="text-right">
+                <p className="text-[15px] font-bold text-text-primary">{game.homeTeamAbbreviation}</p>
+                <p className="text-[12px] text-text-secondary">{game.homeTeamName}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 라인스코어 — 탭이 아니라 헤더 바로 아래 항상 표시 */}
+        <LineScoreTable lineScores={lineScores} game={game} boxScores={boxScores} />
+
+        {/* 탭 */}
+        <div className="flex gap-1 rounded-xl bg-bg-secondary p-1">
+          {([
+            { key: "timeline", label: "타임라인" },
+            { key: "boxscore", label: "세부 기록" },
+          ] as { key: Tab; label: string }[]).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={[
+                "flex-1 rounded-lg py-2 text-[13px] font-medium transition-colors",
+                tab === key
+                  ? "bg-bg-primary text-text-primary shadow-sm"
+                  : "text-text-secondary hover:text-text-primary",
+              ].join(" ")}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* 탭 컨텐츠 */}
+        <div className="animate-fade-in">
+          {tab === "timeline" && (
+            <TimelinePanel events={timeline} gameId={id} boxScores={boxScores} />
           )}
-          {final && <span className="text-[11px] text-text-secondary">경기 종료</span>}
-          <span className="text-[11px] text-text-secondary">{formatGameDate(game.gameDate)}</span>
-          {game.venue && <span className="text-[11px] text-text-secondary">· {game.venue}</span>}
-        </div>
-
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex flex-1 flex-col items-start gap-2">
-            {game.awayTeamLogoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={game.awayTeamLogoUrl} alt={game.awayTeamAbbreviation} className="h-14 w-14 object-contain" />
-            )}
-            <div>
-              <p className="text-[15px] font-bold text-text-primary">{game.awayTeamAbbreviation}</p>
-              <p className="text-[12px] text-text-secondary">{game.awayTeamName}</p>
-            </div>
-          </div>
-
-          <div className="flex shrink-0 flex-col items-center gap-1">
-            {live || final ? (
-              <div className="flex items-center gap-3 text-[36px] font-extrabold tabular-nums text-text-primary">
-                <span>{game.awayScore ?? 0}</span>
-                <span className="text-[20px] font-light text-text-secondary">-</span>
-                <span>{game.homeScore ?? 0}</span>
-              </div>
-            ) : (
-              <div className="text-[24px] font-bold text-text-primary">
-                {new Date(game.gameDate).toLocaleTimeString("ko-KR", {
-                  timeZone: "Asia/Seoul",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-1 flex-col items-end gap-2">
-            {game.homeTeamLogoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={game.homeTeamLogoUrl} alt={game.homeTeamAbbreviation} className="h-14 w-14 object-contain" />
-            )}
-            <div className="text-right">
-              <p className="text-[15px] font-bold text-text-primary">{game.homeTeamAbbreviation}</p>
-              <p className="text-[12px] text-text-secondary">{game.homeTeamName}</p>
-            </div>
-          </div>
+          {tab === "boxscore" && <BoxScoreTable boxScores={boxScores} game={game} timeline={timeline} />}
         </div>
       </div>
 
-      {/* 라인스코어 — 탭이 아니라 헤더 바로 아래 항상 표시 */}
-      <LineScoreTable lineScores={lineScores} game={game} boxScores={boxScores} />
-
-      {/* 탭 */}
-      <div className="flex gap-1 rounded-xl bg-bg-secondary p-1">
-        {([
-          { key: "timeline", label: "타임라인" },
-          { key: "boxscore", label: "세부 기록" },
-        ] as { key: Tab; label: string }[]).map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={[
-              "flex-1 rounded-lg py-2 text-[13px] font-medium transition-colors",
-              tab === key
-                ? "bg-bg-primary text-text-primary shadow-sm"
-                : "text-text-secondary hover:text-text-primary",
-            ].join(" ")}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* 탭 컨텐츠 */}
-      <div className="animate-fade-in">
-        {tab === "timeline" && (
-          <TimelinePanel events={timeline} gameId={id} boxScores={boxScores} />
-        )}
-        {tab === "boxscore" && <BoxScoreTable boxScores={boxScores} game={game} timeline={timeline} />}
-      </div>
+      {/* 우측: 경기 채팅방 — 데스크탑에서는 스코어보드 옆에 고정, 모바일에서는 아래로 */}
+      <aside className="w-full shrink-0 lg:sticky lg:top-4 lg:w-[360px]">
+        <GameChatBox gameId={id} />
+      </aside>
     </div>
   );
 }

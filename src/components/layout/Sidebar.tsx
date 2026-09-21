@@ -63,9 +63,13 @@ export default function Sidebar() {
       <div className="mt-auto">
         {isLoggedIn ? (
           <div className="flex flex-col gap-2">
-            <span className="px-2 text-[12px] text-white/70">
-              {nickname} 님
-            </span>
+            <Link
+              href="/profile"
+              className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white"
+            >
+              <span className="w-[18px] text-center text-[14px]">👤</span>
+              {nickname}
+            </Link>
             <button
               onClick={logout}
               className="w-full rounded-lg bg-white/[0.08] py-2.5 text-[13px] text-white transition-colors hover:bg-white/[0.14]"
@@ -74,12 +78,20 @@ export default function Sidebar() {
             </button>
           </div>
         ) : (
-          <Link
-            href="/auth/login"
-            className="block w-full rounded-lg bg-white/[0.08] py-2.5 text-center text-[13px] text-white transition-colors hover:bg-white/[0.14]"
-          >
-            로그인
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/auth/login"
+              className="block w-full rounded-lg bg-accent py-2.5 text-center text-[13px] font-medium text-white transition-opacity hover:opacity-90"
+            >
+              로그인
+            </Link>
+            <Link
+              href="/auth/signup"
+              className="block w-full rounded-lg bg-white/[0.08] py-2.5 text-center text-[13px] text-white transition-colors hover:bg-white/[0.14]"
+            >
+              회원가입
+            </Link>
+          </div>
         )}
       </div>
     </aside>
