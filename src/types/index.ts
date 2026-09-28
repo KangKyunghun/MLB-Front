@@ -175,6 +175,189 @@ export interface PitcherStatResponse {
   strikeoutWalkRatio: number | null;
 }
 
+export interface PlayerResponse {
+  id: number;
+  teamId: number | null;
+  teamName: string | null;
+  teamLogoUrl: string | null;
+  fullName: string;
+  firstName: string;
+  lastName: string;
+  position: string;
+  shirtNumber: string | null;
+  batSide: string | null;
+  pitchHand: string | null;
+  dateOfBirth: string | null;
+  nationality: string | null;
+  photoUrl: string | null;
+  isActive: boolean;
+}
+
+export interface TeamResponse {
+  id: number;
+  name: string;
+  abbreviation: string;
+  teamName: string;
+  locationName: string;
+  league: string;
+  division: string;
+  venue: string;
+  logoUrl: string | null;
+}
+
+// 타자 스탯
+export interface BatterStatResponse {
+  id: number;
+  playerId: number;
+  season: number;
+  gameType: string;
+  gamesPlayed: number;
+  atBats: number;
+  runs: number;
+  hits: number;
+  doubles: number;
+  triples: number;
+  homeRuns: number;
+  rbi: number;
+  stolenBases: number;
+  caughtStealing: number;
+  walks: number;
+  strikeOuts: number;
+  avg: number;
+  obp: number;
+  slg: number;
+  ops: number;
+  babip: number | null;
+  wrc: number | null;
+}
+
+// 투수 스탯
+export interface PitcherStatResponse {
+  id: number;
+  playerId: number;
+  season: number;
+  gameType: string;
+  wins: number;
+  losses: number;
+  era: number;
+  gamesPlayed: number;
+  gamesStarted: number;
+  saves: number;
+  holds: number;
+  inningsPitched: number;
+  hits: number;
+  runs: number;
+  earnedRuns: number;
+  homeRuns: number;
+  walks: number;
+  strikeOuts: number;
+  whip: number;
+  strikeoutsPer9: number | null;
+  walksPer9: number | null;
+  hitsPer9: number | null;
+}
+
+// 핫콜드존
+export interface HotColdZoneResponse {
+  id: number;
+  playerId: number;
+  season: number;
+  gameType: string;
+  playerType: string;
+  zones: ZoneData[];
+}
+
+export interface ZoneData {
+  zoneId: number;
+  avg: number;
+  atBats: number;
+  hits: number;
+}
+
+// 스프레이차트
+export interface SprayDataResponse {
+  id: number;
+  playerId: number;
+  season: number;
+  gameType: string;
+  hitX: number;
+  hitY: number;
+  hitType: string;   // single/double/triple/home_run/out
+  exitVelocity: number | null;
+  launchAngle: number | null;
+}
+
+// 스플릿
+export interface BatterSituationStatResponse {
+  id: number;
+  playerId: number;
+  season: number;
+  gameType: string;
+  sitCode: string;   // risp / vl / vr
+  atBats: number;
+  hits: number;
+  homeRuns: number;
+  rbi: number;
+  walks: number;
+  strikeOuts: number;
+  avg: number;
+  obp: number;
+  slg: number;
+  ops: number;
+}
+
+// 구종 데이터
+export interface PitchMixResponse {
+  pitcherId: number;
+  season: number;
+  gameType: string;
+  pitches: PitchTypeData[];
+}
+
+export interface PitchTypeData {
+  pitchType: string;
+  pitchName: string;
+  count: number;
+  percentage: number;
+  avgVelocity: number | null;
+  maxVelocity: number | null;
+  avgSpinRate: number | null;
+}
+
+// 상대전적
+export interface BatterVsPitcherResponse {
+  pitcherId?: number;
+  pitcherName?: string;
+  batterId?: number;
+  batterName?: string;
+  atBats: number;
+  hits: number;
+  homeRuns: number;
+  rbi: number;
+  walks: number;
+  strikeOuts: number;
+  avg: number;
+  obp: number;
+  slg: number;
+  ops: number;
+}
+
+export interface BatterVsTeamResponse {
+  teamId: number;
+  teamName: string;
+  teamLogoUrl: string | null;
+  atBats: number;
+  hits: number;
+  homeRuns: number;
+  rbi: number;
+  walks: number;
+  strikeOuts: number;
+  avg: number;
+  obp: number;
+  slg: number;
+  ops: number;
+}
+
 // ── 프론트 전용 보조 타입 ──────────────────────
 
 export type GameType = "R" | "PS";
