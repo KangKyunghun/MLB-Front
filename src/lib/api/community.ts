@@ -1,47 +1,100 @@
-import { api } from "./client";
+import {
+  CommentRequest,
+  CommentResponse,
+  LikeResponse,
+  Page,
+  PostRequest,
+  PostResponse,
+  PostSearchParams,
+} from '@/types/community';
+import { api } from './client';
 
-export interface PostResponse {
-  id: number;
-  userId: number;
-  nickname: string;
-  title: string;
-  content?: string;
-  category: "FREE" | "ANALYSIS" | string;
-  relatedPlayerId: number | null;
-  relatedTeamId: number | null;
-  likeCount: number;
-  viewCount: number;
-  liked: boolean;
-  createdAt: string;
-  updatedAt: string;
+// ── 게시글 ──────────────────────────────────────────
+
+export async function getPosts(params: PostSearchParams = {}): Promise<Page<PostResponse>> {
+  const { category, keyword, searchType, playerId, teamId, page = 0, size = 20, sort = 'createdAt', direction = 'desc' } = params;
+  const searchParams = new URLSearchParams();
+  if (category) searchParams.set('category', category);
+  if (keyword) searchParams.set('keyword', keyword);
+  if (searchType) searchParams.set('searchType', searchType);
+  if (playerId) searchParams.set('playerId', String(playerId));
+  if (teamId) searchParams.set('teamId', String(teamId));
+  searchParams.set('page', String(page));
+  searchParams.set('size', String(size));
+  searchParams.set('sort', `${sort},${direction}`);
+  const res = await api.get<Page<PostResponse>>(`/api/posts?${searchParams.toString()}`);
+  return res.data;
 }
 
-interface PageResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-  size: number;
+export async function getMyPosts(page = 0, size = 20): Promise<Page<PostResponse>> {
+  const res = await api.get<Page<PostResponse>>(`/api/posts/my?page=${page}&size=${size}&sort=createdAt,desc`);
+  return res.data;
 }
 
-/**
- * 인기글 N개.
- * 백엔드에 좋아요순 정렬 API가 따로 없어서, 최신글을 넉넉히 가져온 뒤
- * likeCount 기준으로 프론트에서 정렬합니다.
- * (백엔드에 GET /api/posts?sort=likeCount,desc 를 지원하는 게 정석이라
- *  여유 생기면 그쪽으로 옮기는 걸 추천해요.)
- */
-export async function getPopularPosts(limit = 4): Promise<PostResponse[]> {
-  const { data } = await api.get<PageResponse<PostResponse>>("/api/posts", {
-    params: { page: 0, size: 30, sort: "createdAt,desc" },
+/** 상세 조회 — 조회수 증가 O */
+export async function getPost(postId: number): Promise<PostResponse> {
+  const res = await api.get<PostResponse>(`/api/posts/${postId}`);
+  return res.data;
+}
+
+/** 수정용 조회 — 조회수 증가 X, 본인만 가능 */
+export async function getPostForEdit(postId: number): Promise<PostResponse> {
+  const res = await api.get<PostResponse>(`/api/posts/${postId}/for-edit`);
+  return res.data;
+}
+
+export async function createPost(request: PostRequest): Promise<PostResponse> {
+  const res = await api.post<PostResponse>('/api/posts', request);
+  return res.data;
+}
+
+/** PIN이 설정된 글은 pin 필수 */
+export async function updatePost(postId: number, request: PostRequest, pin?: string): Promise<PostResponse> {
+  const res = await api.put<PostResponse>(`/api/posts/${postId}`, request, {
+    headers: pin ? { 'X-Delete-Pin': pin } : {},
   });
-
-  return [...data.content]
-    .sort((a, b) => b.likeCount - a.likeCount)
-    .slice(0, limit);
+  return res.data;
 }
 
-export const CATEGORY_LABEL: Record<string, string> = {
-  FREE: "자유",
-  ANALYSIS: "분석",
-};
+/** PIN이 설정된 글은 pin 필수 */
+export async function deletePost(postId: number, pin?: string): Promise<void> {
+  await api.delete(`/api/posts/${postId}`, {
+    headers: pin ? { 'X-Delete-Pin': pin } : {},
+  });
+}
+
+export async function togglePostLike(postId: number): Promise<LikeResponse> {
+  const res = await api.post<LikeResponse>(`/api/posts/${postId}/like`);
+  return res.data;
+}
+
+// ── 댓글 ──────────────────────────────────────────
+
+export async function getComments(postId: number): Promise<CommentResponse[]> {
+  const res = await api.get<CommentResponse[]>(`/api/comments/${postId}`);
+  return res.data;
+}
+
+export async function getMyComments(): Promise<CommentResponse[]> {
+  const res = await api.get<CommentResponse[]>('/api/comments/my');
+  return res.data;
+}
+
+export async function createComment(postId: number, request: CommentRequest): Promise<CommentResponse> {
+  const res = await api.post<CommentResponse>(`/api/comments/${postId}`, request);
+  return res.data;
+}
+
+export async function updateComment(commentId: number, request: CommentRequest): Promise<CommentResponse> {
+  const res = await api.put<CommentResponse>(`/api/comments/${commentId}`, request);
+  return res.data;
+}
+
+export async function deleteComment(commentId: number): Promise<void> {
+  await api.delete(`/api/comments/${commentId}`);
+}
+
+export async function toggleCommentLike(commentId: number): Promise<LikeResponse> {
+  const res = await api.post<LikeResponse>(`/api/comments/${commentId}/like`);
+  return res.data;
+}

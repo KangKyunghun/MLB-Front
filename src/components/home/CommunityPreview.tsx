@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CATEGORY_LABEL, getPopularPosts, type PostResponse } from "@/lib/api/community";
+import { getPosts } from "@/lib/api/community";
+import type { PostResponse, PostCategory } from "@/types/community";
+
+const CATEGORY_LABEL: Record<PostCategory, string> = {
+  FREE: "자유",
+  ANALYSIS: "분석",
+};
 
 const BADGE_STYLE: Record<string, string> = {
   FREE: "bg-[#e1f5ee] text-[#0f6e56]",
@@ -12,9 +18,17 @@ const BADGE_STYLE: Record<string, string> = {
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 60) return `${minutes}분 전`;
+
+  if (minutes < 60) {
+    return `${minutes}분 전`;
+  }
+
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}시간 전`;
+
+  if (hours < 24) {
+    return `${hours}시간 전`;
+  }
+
   return `${Math.floor(hours / 24)}일 전`;
 }
 
@@ -23,18 +37,25 @@ export default function CommunityPreview() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
 
-    getPopularPosts(4)
+    getPosts({
+      page: 0,
+      size: 4,
+      sort: "likeCount",
+      direction: "desc",
+    })
       .then((data) => {
-        if (mounted) setPosts(data);
+        if (cancelled) return;
+        setPosts(data.content);
       })
       .catch(() => {
-        if (mounted) setError(true);
+        if (cancelled) return;
+        setError(true);
       });
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
   }, []);
 
@@ -44,6 +65,7 @@ export default function CommunityPreview() {
         <span className="text-[14px] font-medium text-text-primary">
           커뮤니티 인기글
         </span>
+
         <Link
           href="/community"
           className="text-[11px] text-text-secondary hover:text-text-primary"
@@ -59,7 +81,10 @@ export default function CommunityPreview() {
       ) : posts === null ? (
         <div className="space-y-3 py-1">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-4 animate-pulse rounded bg-bg-tertiary" />
+            <div
+              key={i}
+              className="h-4 animate-pulse rounded bg-bg-tertiary"
+            />
           ))}
         </div>
       ) : posts.length === 0 ? (
@@ -76,15 +101,18 @@ export default function CommunityPreview() {
             <span
               className={[
                 "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium",
-                BADGE_STYLE[post.category] ?? "bg-bg-tertiary text-text-secondary",
+                BADGE_STYLE[post.category] ??
+                  "bg-bg-tertiary text-text-secondary",
               ].join(" ")}
             >
               {CATEGORY_LABEL[post.category] ?? post.category}
             </span>
+
             <div className="min-w-0 flex-1">
               <div className="truncate text-[13px] leading-snug text-text-primary">
                 {post.title}
               </div>
+
               <div className="mt-0.5 text-[11px] text-text-secondary">
                 좋아요 {post.likeCount} · {timeAgo(post.createdAt)}
               </div>
